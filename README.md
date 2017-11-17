@@ -1,3 +1,10 @@
+## TF r1.4 with new quantization features
+  - Tensorflow r1.4 + 'QuantizedDepthwiseConv2dNative'
+    - Added a new layer "QuantizedDepthwiseConv2dNative", a 8-bit version of "DepthwiseConv2dNative' with QINT8 inputs and QINT32 outputs.
+    - 'quantize_graph.py' in 'tensorflow/tools/quantization' has been modified to convert 'DepthwiseConv2dNative' to 'QuantizedDepthwiseConv2dNative'.
+    - Note that only types of depthwise layers used in MobileNet (e.g. channel_multiplier=1) have been implemented and tested.
+    - Note that a new layer can be inserted only through conversion from 'DepthwiseConv2dNative' by executing 'quantize_graph.py'.
+
 <div align="center">
   <img src="https://www.tensorflow.org/images/tf_logo_transp.png"><br><br>
 </div>
