@@ -237,6 +237,10 @@ tf_module {
     argspec: "args=[\'input\', \'filter\', \'min_input\', \'max_input\', \'min_filter\', \'max_filter\', \'strides\', \'padding\', \'out_type\', \'name\'], varargs=None, keywords=None, defaults=[\"<dtype: \'qint32\'>\", \'None\'], "
   }
   member_method {
+    name: "quantized_depthwise_conv2d"
+    argspec: "args=[\'input\', \'filter\', \'min_input\', \'max_input\', \'min_filter\', \'max_filter\', \'strides\', \'padding\', \'out_type\', \'name\'], varargs=None, keywords=None, defaults=[\"<dtype: \'qint32\'>\", \'None\'], "
+  }
+  member_method {
     name: "quantized_max_pool"
     argspec: "args=[\'input\', \'min_input\', \'max_input\', \'ksize\', \'strides\', \'padding\', \'name\'], varargs=None, keywords=None, defaults=[\'None\'], "
   }

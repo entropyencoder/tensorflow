@@ -2644,6 +2644,52 @@ max_output: The float value that the highest quantized output value represents.
 
 )doc");
 
+REGISTER_OP("QuantizedDepthwiseConv2dNative")
+    .Input("input: Tinput")
+    .Input("filter: Tfilter")
+    .Input("min_input: float")
+    .Input("max_input: float")
+    .Input("min_filter: float")
+    .Input("max_filter: float")
+    .Output("output: out_type")
+    .Output("min_output: float")
+    .Output("max_output: float")
+    .Attr("Tinput: quantizedtype")
+    .Attr("Tfilter: quantizedtype")
+    .Attr("out_type: quantizedtype = DT_QINT32")
+    .Attr("strides: list(int)")
+    .Attr(GetPaddingAttrString())
+    .SetShapeFn([](InferenceContext* c) {
+      TF_RETURN_IF_ERROR(shape_inference::DepthwiseConv2DNativeShape(c));
+      ShapeHandle unused;
+      TF_RETURN_IF_ERROR(c->WithRank(c->input(2), 0, &unused));
+      TF_RETURN_IF_ERROR(c->WithRank(c->input(3), 0, &unused));
+      TF_RETURN_IF_ERROR(c->WithRank(c->input(4), 0, &unused));
+      TF_RETURN_IF_ERROR(c->WithRank(c->input(5), 0, &unused));
+      c->set_output(1, c->Scalar());
+      c->set_output(2, c->Scalar());
+      return Status::OK();
+    })
+    .Doc(R"doc(
+Computes a 2D depthwise convolution given quantized 4D input and filter tensors.
+The inputs are quantized tensors where the lowest value represents the real
+number of the associated minimum, and the highest represents the maximum.
+This means that you can only interpret the quantized output in the same way, by
+taking the returned minimum and maximum values into account.
+
+filter: filter's input_depth dimension must match input's depth dimensions.
+strides: The stride of the sliding window for each dimension of the input
+  tensor.
+padding: The type of padding algorithm to use.
+min_input: The float value that the lowest quantized input value represents.
+max_input: The float value that the highest quantized input value represents.
+min_filter: The float value that the lowest quantized filter value represents.
+max_filter: The float value that the highest quantized filter value represents.
+min_output: The float value that the lowest quantized output value represents.
+max_output: The float value that the highest quantized output value represents.
+
+)doc");
+
 REGISTER_OP("QuantizedMaxPool")
     .Input("input: T")
     .Input("min_input: float")

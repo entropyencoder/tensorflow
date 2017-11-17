@@ -461,7 +461,7 @@ class GraphRewriter(object):
       input_node_name = node_name_from_input(input_node_name)
       input_node = self.nodes_map[input_node_name]
       self.round_nodes_recursively(input_node)
-    nodes_to_quantize = ["Conv2D", "BiasAdd", "MatMul"]
+    nodes_to_quantize = ["Conv2D", "DepthwiseConv2dNative", "BiasAdd", "MatMul"]
     if any(current_node.op in s for s in nodes_to_quantize):
       new_node = node_def_pb2.NodeDef()
       new_node.CopyFrom(current_node)
@@ -493,7 +493,7 @@ class GraphRewriter(object):
       input_node_name = node_name_from_input(input_node_name)
       input_node = self.nodes_map[input_node_name]
       self.quantize_nodes_recursively(input_node)
-    nodes_to_quantize = ["Conv2D", "BiasAdd", "MatMul"]
+    nodes_to_quantize = ["Conv2D", "DepthwiseConv2dNative", "BiasAdd", "MatMul"]
     if any(current_node.op in s for s in nodes_to_quantize):
       for input_name in current_node.input:
         input_name = node_name_from_input(input_name)
@@ -582,7 +582,7 @@ class GraphRewriter(object):
 
     for i, input_node_name in enumerate(current_node.input):
       quantize_input = False
-      if current_node.op in ("MatMul", "Conv2D", "BiasAdd", "MaxPool",
+      if current_node.op in ("MatMul", "Conv2D", "DepthwiseConv2dNative", "BiasAdd", "MaxPool",
                              "AvgPool", "Relu", "Relu6",
                              "BatchNormWithGlobalNormalization"):
         quantize_input = True
@@ -605,6 +605,8 @@ class GraphRewriter(object):
       self.eightbitize_mat_mul_node(current_node)
     elif current_node.op == "Conv2D":
       self.eightbitize_conv_node(current_node)
+    elif current_node.op == "DepthwiseConv2dNative":
+      self.eightbitize_depthwise_conv_node(current_node)
     elif current_node.op == "BiasAdd":
       self.eightbitize_bias_add_node(current_node)
     elif current_node.op == "MaxPool" or current_node.op == "AvgPool":
@@ -809,6 +811,22 @@ class GraphRewriter(object):
     self.add_output_graph_node(quantized_conv_node)
     quantize_down_name = self.add_quantize_down_nodes(original_node,
                                                       quantized_conv_name)
+    self.add_dequantize_result_node(quantize_down_name, original_node.name)
+
+  def eightbitize_depthwise_conv_node(self, original_node):
+    """Replaces a DepthwiseConv2dNative node with the eight bit equivalent sub-graph."""
+    all_input_names = self.add_eightbit_prologue_nodes(original_node)
+    quantized_depthwise_conv_name = original_node.name + "_eightbit_quantized_depthwise_conv"
+    quantized_depthwise_conv_node = create_node("QuantizedDepthwiseConv2dNative", 
+            quantized_depthwise_conv_name, all_input_names)
+    copy_attr(quantized_depthwise_conv_node, "strides", original_node.attr["strides"])
+    copy_attr(quantized_depthwise_conv_node, "padding", original_node.attr["padding"])
+    set_attr_dtype(quantized_depthwise_conv_node, "Tinput", dtypes.quint8)
+    set_attr_dtype(quantized_depthwise_conv_node, "Tfilter", dtypes.quint8)
+    set_attr_dtype(quantized_depthwise_conv_node, "out_type", dtypes.qint32)
+    self.add_output_graph_node(quantized_depthwise_conv_node)
+    quantize_down_name = self.add_quantize_down_nodes(original_node, 
+            quantized_depthwise_conv_name)
     self.add_dequantize_result_node(quantize_down_name, original_node.name)
 
   def eightbitize_bias_add_node(self, original_node):
