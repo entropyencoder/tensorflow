@@ -1,4 +1,4 @@
-## TensorFlow with new quantization features
+## TensorFlow fork with new quantization features
   - Added a new layer "QuantizedDepthwiseConv2dNative", a 8-bit version of "DepthwiseConv2dNative' with QINT8 inputs and QINT32 outputs.
     - Base TF commit: fa4977f14fa7049f681bd7119e327254acf3c072
   - 'quantize_graph.py' in 'tensorflow/tools/quantization' has been modified to convert 'DepthwiseConv2dNative' to 'QuantizedDepthwiseConv2dNative'.
