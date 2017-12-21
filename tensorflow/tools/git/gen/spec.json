@@ -1,3 +1,5 @@
 {
-  "git": false
+  "path": "/home/yschoi/work/tensorflow_custom",
+  "git": true,
+  "branch": "refs/heads/master"
 }
