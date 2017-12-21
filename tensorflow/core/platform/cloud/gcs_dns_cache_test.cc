@@ -58,11 +58,20 @@ class TestHttpRequest : public HttpRequest {
   Status SetResultBuffer(std::vector<char>* out_buffer) override {
     return Status::OK();
   }
+  Status SetResultBufferDirect(char* buffer, size_t size) override {
+    return Status::OK();
+  }
+  size_t GetResultBufferDirectBytesTransferred() override { return 0; }
 
   string GetResponseHeader(const string& name) const override { return ""; }
   uint64 GetResponseCode() const override { return 0; }
   Status Send() override { return Status::OK(); }
   string EscapeString(const string& str) override { return ""; }
+
+  Status SetTimeouts(uint32 connection, uint32 inactivity,
+                     uint32 total) override {
+    return Status::OK();
+  }
 
   std::map<string, string> resolve_overrides_;
 };
@@ -83,8 +92,7 @@ class GcsDnsCacheTest : public ::testing::Test {
     {
       mutex_lock l(d.mu_);
       d.started_ = true;  // Avoid creating a thread.
-      d.www_addresses_ = {"192.168.1.1"};
-      d.storage_addresses_ = {"172.134.1.1"};
+      d.addresses_ = {{"192.168.1.1"}, {"172.134.1.1"}};
     }
 
     TestHttpRequest req;
